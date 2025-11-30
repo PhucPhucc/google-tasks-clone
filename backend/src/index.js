@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 
 import authRoute from './routers/authRoute.js';
 import requireAuth from './middlewares/authMiddleware.js';
+import { connectDB } from './config/db.js';
 
 dotenv.config();
-
-// 1. Import kết nối Supabase
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,15 +15,21 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+app.use(cookieParser());
 
 // Public routes
 app.use('/api/auth', authRoute);
 
 // Private routes
-// app.use(requireAuth)
-app.get('/test', (req, res) => res.send('test api thành công'));
+app.use(requireAuth);
+app.get('/test', (req, res) => {
+  const user = req.user;
+  console.log(user);
+  res.status(200).json(user);
+});
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 });
