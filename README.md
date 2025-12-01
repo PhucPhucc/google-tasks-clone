@@ -16,3 +16,17 @@
   npm run dev
 ```
 
+routing
+
+```
+  git checkout dev
+  git pull origin dev
+  git checkout -b 'feature/FE/{tinh nang}'
+
+  git status (check file add, commit, branch...)
+
+  git add .
+  git commit -m 'your commit'
+  git push origin feature/FE/{tinh nang}
+
+```
