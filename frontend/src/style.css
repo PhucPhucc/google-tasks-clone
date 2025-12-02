@@ -9,3 +9,38 @@
 @theme {
     --font-itim: "Itim", cursive;
 }
+@layer utilities {
+  @keyframes zoomIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.8); /* Bắt đầu nhỏ hơn bình thường (80%) */
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1); /* Kết thúc ở kích thước thật (100%) */
+    }
+  }
+
+  .animate-zoom-in {
+    animation: zoomIn 0.2s ease-out forwards; /* Chạy trong 0.2s, nhanh và mượt */
+  }
+}
+
+
+/* 1. Tắt bôi đen (Select text) cho toàn bộ trang web */
+body {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE 10+ */
+    user-select: none;         /* Chuẩn */
+}
+
+/* 2. QUAN TRỌNG: Bật lại bôi đen cho thẻ Input và Textarea */
+/* Nếu không có đoạn này, bạn sẽ không thể sửa text trong ô nhập liệu */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: text; /* Đảm bảo con trỏ chuột hiện đúng */
+}
