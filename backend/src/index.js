@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 
 import authRoute from './routers/authRoute.js';
+import listTaskRoute from './routers/listTaskRoute.js';
+
 import requireAuth from './middlewares/authMiddleware.js';
 import { connectDB } from './config/db.js';
 
@@ -22,9 +24,12 @@ app.use('/api/auth', authRoute);
 
 // Private routes
 app.use(requireAuth);
+app.use('/api/list', listTaskRoute)
+
+
+
 app.get('/test', (req, res) => {
   const user = req.user;
-  console.log(user);
   res.status(200).json(user);
 });
 

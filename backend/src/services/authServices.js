@@ -4,6 +4,7 @@ import crypto from 'crypto';
 
 import User from '../models/User.js';
 import Session from '../models/Session.js';
+import TaskList from '../models/TaskList.js';
 
 const ACCESS_TOKEN_TTL = '30m';
 const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000;
@@ -24,10 +25,17 @@ export const registerService = async (email, password, username) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       username,
       email,
       password: hashPassword,
+    });
+
+    await TaskList.create({
+      title: 'Việc cần làm của tôi',
+      ownerId: user._id,
+      is_default: true,
+      member: [],
     });
 
     return { success: true, status: 201, message: 'Tạo tài khoản thành công' };
@@ -71,12 +79,21 @@ export const loginService = async (username, password) => {
     );
 
     const refreshToken = crypto.randomBytes(64).toString('hex');
-    await Session.create({
-      userId: user._id,
-      refreshToken,
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
-    });
 
+    const updateSession = await Session.updateOne(
+      { userId: user._id },
+      {
+        refreshToken,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
+      }
+    );
+    if (!updateSession) {
+      await Session.create({
+        userId: user._id,
+        refreshToken,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
+      });
+    }
     return {
       success: true,
       status: 200,
@@ -140,7 +157,7 @@ export const refreshTokenService = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: ACCESS_TOKEN_TTL }
     );
-    return res.json({accessToken})
+    return res.json({ accessToken });
   } catch (error) {
     console.log('Lỗi khi gọi refreshToken: ' + error);
     return {

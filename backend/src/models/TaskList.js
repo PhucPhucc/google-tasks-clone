@@ -9,7 +9,7 @@ const taskListSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-
+    is_default: {type: Boolean, default: false},
     // Danh sách thành viên được chia sẻ
     members: [
       {

@@ -7,7 +7,7 @@ import {
 } from "../controllers/authController.js";
 
 const router = express.Router();
-
+//api/auth/register
 router.post("/register", register);
 
 router.post("/login", logIn);
