@@ -100,9 +100,9 @@ const Login = () => {
                 </form> 
 
                 <div className="flex items-center my-3">
-                    <div className="flex-grow border-t border-gray-300"></div>
+                    <div className="grow border-t border-gray-300"></div>
                     <span className="px-3 text-sm text-gray-400 font-medium">or</span>
-                    <div className="flex-grow border-t border-gray-300"></div>
+                    <div className="grow border-t border-gray-300"></div>
                 </div>
 
                 {/* Google Button */}
