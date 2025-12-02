@@ -1,11 +1,13 @@
-import axios from "axios";
+import axios from 'axios';
 
-const BASE_URL = "http://localhost:5000/api/auth";
+// Đảm bảo URL này đúng với port backend của bạn (mặc định là 5000)
+const API_URL = 'http://127.0.0.1:5000/api/auth';
 
 export const loginAPI = (username, password) => {
-  return axios.post(`${BASE_URL}/login`, { username, password });
+    return axios.post(`${API_URL}/login`, { username, password });
 };
 
-export const registerAPI = (username, password) => {
-  return axios.post(`${BASE_URL}/register`, { username, password });
+// --- THÊM HÀM NÀY ---
+export const registerAPI = (email, password, username) => {
+    return axios.post(`${API_URL}/register`, { email, password, username });
 };
