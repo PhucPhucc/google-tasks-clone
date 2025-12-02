@@ -1,1 +1,11 @@
 @import "tailwindcss";
+/* 1. Import font từ Google (Phải để dòng này đầu tiên) */
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+
+/* 2. Import Tailwind v4 */
+@import "tailwindcss";
+
+/* 3. Cấu hình Font mới bằng @theme */
+@theme {
+    --font-itim: "Itim", cursive;
+}
