@@ -1,7 +1,7 @@
 import {
   createList,
   deleteListById,
-  getListById,
+  getTasks,
   getListByUserId,
   updateListById,
 } from '../services/listTaskService.js';
@@ -28,36 +28,36 @@ export const createListTask = async (req, res) => {
   return res.status(listResult.status).json(listResult);
 };
 
-export const getListTaskById = async (req, res) => {
-  const { id: taskId } = req.params;
-  if (!taskId)
-    return res.status(500).json({ message: 'không tìm thấy title ID' });
+export const getTasksByListId = async (req, res) => {
+  const { id: listId } = req.params;
+  if (!listId)
+    return res.status(500).json({ message: 'không tìm thấy list ID' });
 
-  const listResult = await getListById(taskId);
+  const tasksResult = await getTasks(listId);
 
-  return res.status(listResult.status).json(listResult);
+  return res.status(tasksResult.status).json(tasksResult);
 };
 
 export const updateListTaskById = async (req, res) => {
-  const { id: taskId } = req.params;
+  const { id: listId } = req.params;
   const { title } = req.body;
 
-  if (!taskId)
+  if (!listId)
     return res.status(500).json({ message: 'không tìm thấy title ID' });
 
-  const listResult = await updateListById(taskId, title);
+  const listResult = await updateListById(listId, title);
 
   return res.status(listResult.status).json(listResult);
 };
 
 export const deleteListTaskById = async (req, res) => {
-  const { id: taskId } = req.params;
+  const { id: listId } = req.params;
   const user = req.user;
 
-  if (!taskId || !user)
+  if (!listId || !user)
     return res.status(500).json({ message: 'không tìm thấy user hoặc title' });
 
-  const delResult = await deleteListById(taskId, user._id);
+  const delResult = await deleteListById(listId, user._id);
 
   return res.status(delResult.status).json(delResult);
 };

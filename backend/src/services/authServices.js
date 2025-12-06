@@ -150,6 +150,7 @@ export const refreshTokenService = async (req, res) => {
       return res.status(403).json({ message: 'token hết hạn' });
     }
 
+    const user = await User.findById(session.userId);
     const accessToken = jwt.sign(
       {
         userId: user._id,

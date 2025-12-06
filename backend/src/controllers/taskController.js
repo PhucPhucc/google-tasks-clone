@@ -1,8 +1,7 @@
-import { responseFailer } from '../utils/appUtils.js';
 
 
-export const getTasks = async (req, res) => {
-
+export const getAllTasks = async (req, res) => {
+    // const 
 }
 
 export const createTask = async (req, res) => {

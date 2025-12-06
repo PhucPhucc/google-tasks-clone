@@ -3,7 +3,7 @@ import express from 'express'
 const router = express.Router();
 
 // api/tasks
-router.get('/', getTasks);
+router.get('/', getAllTasks); 
 
 router.post('/:id', createTask);
 

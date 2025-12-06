@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Task from '../models/Task.js';
 import TaskList from '../models/TaskList.js';
 import { responseFailer } from '../utils/appUtils.js';
 
@@ -32,13 +33,13 @@ export const createList = async (userId, title) => {
   }
 };
 
-export const getListById = async (taskId) => {
+export const getTasks = async (listId) => {
   try {
-    const list = await TaskList.findById(taskId);
-    if (!list)
+    const tasks = await Task.find({ taskListId: listId });
+    if (!tasks)
       return { success: false, status: 400, message: 'không tìm thấy list ID' };
 
-    return { success: true, status: 200, list };
+    return { success: true, status: 200, tasks };
   } catch (error) {
     return responseFailer('getListByUserId', error);
   }
@@ -62,11 +63,11 @@ export const deleteListById = async (taskId, userId) => {
 
     if (!list)
       return { success: false, status: 400, message: 'không tìm thấy task ID' };
-    console.log(list.ownerId);
-    console.log(userId);
+    
     if (!list.ownerId.equals(userId))
       return { success: false, status: 400, message: 'Bạn không phải chủ sở hữu' };
 
+    await Task.deleteMany({ taskListId: taskId });
     await TaskList.findByIdAndDelete(taskId);
 
 
