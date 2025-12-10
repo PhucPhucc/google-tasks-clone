@@ -29,35 +29,26 @@ export const createListTask = async (req, res) => {
 };
 
 export const getTasksByListId = async (req, res) => {
-  const { id: listId } = req.params;
-  if (!listId)
-    return res.status(500).json({ message: 'không tìm thấy list ID' });
-
-  const tasksResult = await getTasks(listId);
+  const list = req.taskList;
+  const tasksResult = await getTasks(list._id);
 
   return res.status(tasksResult.status).json(tasksResult);
 };
 
 export const updateListTaskById = async (req, res) => {
-  const { id: listId } = req.params;
+  const list = req.taskList;
   const { title } = req.body;
 
-  if (!listId)
-    return res.status(500).json({ message: 'không tìm thấy title ID' });
-
-  const listResult = await updateListById(listId, title);
+  const listResult = await updateListById(list._id, title);
 
   return res.status(listResult.status).json(listResult);
 };
 
 export const deleteListTaskById = async (req, res) => {
-  const { id: listId } = req.params;
+  const list = req.taskList;
   const user = req.user;
 
-  if (!listId || !user)
-    return res.status(500).json({ message: 'không tìm thấy user hoặc title' });
-
-  const delResult = await deleteListById(listId, user._id);
+  const delResult = await deleteListById(list._id, user._id);
 
   return res.status(delResult.status).json(delResult);
 };

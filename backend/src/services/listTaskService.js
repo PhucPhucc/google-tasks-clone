@@ -61,17 +61,18 @@ export const deleteListById = async (taskId, userId) => {
   try {
     const list = await TaskList.findById(taskId);
 
-    if (!list)
-      return { success: false, status: 400, message: 'không tìm thấy task ID' };
-    
-    if (!list.ownerId.equals(userId))
-      return { success: false, status: 400, message: 'Bạn không phải chủ sở hữu' };
+    if (list.is_default) {
+      return {
+        success: false,
+        status: 400,
+        message: 'không thể xoá list mặc định',
+      };
+    }
 
     await Task.deleteMany({ taskListId: taskId });
     await TaskList.findByIdAndDelete(taskId);
 
-
-    return { success: true, status: 200, message: `xoá ${taskId} thành công`};
+    return { success: true, status: 200, message: `xoá ${taskId} thành công` };
   } catch (error) {
     return responseFailer('deleteListById', error);
   }

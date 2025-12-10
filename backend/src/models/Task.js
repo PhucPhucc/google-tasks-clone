@@ -27,7 +27,7 @@ const taskSchema = new mongoose.Schema(
     isAllDay: { type: Boolean, default: false }, 
 
     // Thời gian muốn hệ thống gửi thông báo (khác với deadline)
-    reminderDateTime: { type: Date },
+    reminderDateTime: { type: Date, default: null },
 
     // --- LOGIC LẶP LẠI NÂNG CAO (Recurrence) ---
     isRecurring: { type: Boolean, default: false },

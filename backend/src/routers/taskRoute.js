@@ -1,17 +1,28 @@
-import express from 'express'
+import express from 'express';
+import requireTask from '../middlewares/taskMiddleware.js';
+
+import {
+  getAllTasks,
+  createTask,
+  updateTask,
+  updateStatus,
+  deleteTask,
+} from '../controllers/taskController.js';
 
 const router = express.Router();
 
 // api/tasks
-router.get('/', getAllTasks); 
+router.get('/', getAllTasks);
 
-router.post('/:id', createTask);
+router.post('/', createTask);
 
-router.patch('/:id', updateTask);
+router.patch('/:id', requireTask, updateTask);
 
-router.patch('/:id/status', updateStatus);
+router.patch('/:id/status', requireTask, updateStatus);
 
-router. delete('/:id', deleteTask);
+router.delete('/:id', requireTask, deleteTask);
 
 // share user
-router.patch('/:id/assign', getTasks);
+// router.patch('/:id/assign', requireTask, getTasks);
+
+export default router;

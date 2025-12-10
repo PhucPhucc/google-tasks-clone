@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import authRoute from './routers/authRoute.js';
 import listTaskRoute from './routers/listTaskRoute.js';
-
+import taskRoute from './routers/taskRoute.js';
 import requireAuth from './middlewares/authMiddleware.js';
 import { connectDB } from './config/db.js';
 
@@ -24,9 +24,8 @@ app.use('/api/auth', authRoute);
 
 // Private routes
 app.use(requireAuth);
-app.use('/api/list', listTaskRoute)
-
-
+app.use('/api/list', listTaskRoute);
+app.use('/api/tasks', taskRoute);
 
 app.get('/test', (req, res) => {
   const user = req.user;
