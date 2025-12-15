@@ -1,6 +1,6 @@
-import Task from '../models/Task.js';
-import TaskList from '../models/TaskList.js';
-import { responseFailer } from '../utils/appUtils.js';
+import Task from "../models/Task.js";
+import TaskList from "../models/TaskList.js";
+import { responseFailer } from "../utils/appUtils.js";
 
 export const getAllTaskService = async (userId) => {
   try {
@@ -15,11 +15,11 @@ export const getAllTaskService = async (userId) => {
     return {
       success: true,
       status: 200,
-      message: 'Lấy danh sách task thành công',
+      message: "Lấy danh sách task thành công",
       // tasksResult
     };
   } catch (error) {
-    return responseFailer('getAllTaskService', error);
+    return responseFailer("getAllTaskService", error);
   }
 };
 
@@ -41,7 +41,7 @@ export const createNewTaskService = async (userId, taskData) => {
   });
 
   if (!taskList) {
-    throw new Error('TASK_LIST_NOT_FOUND');
+    throw new Error("TASK_LIST_NOT_FOUND");
   }
 
   let finalDueDate = dueDateTime;
@@ -54,8 +54,8 @@ export const createNewTaskService = async (userId, taskData) => {
   const newTask = await Task.create({
     userId,
     taskListId,
-    title: title || '',
-    description: description || '',
+    title: title || "",
+    description: description || "",
     isCompleted: false,
     isImportant: isImportant || false,
     dueDateTime: finalDueDate,
@@ -64,4 +64,25 @@ export const createNewTaskService = async (userId, taskData) => {
     recurrence: isRecurring ? recurrence : null,
   });
   return newTask;
+};
+
+export const updateTaskService = async (task, updateData) => {
+  const { title, description, dueDateTime, priority, reminderDateTime, recurrence } = updateData;
+  if (title !== undefined) task.title = title;
+  if (description !== undefined) task.description = description;
+  if (dueDateTime !== undefined) task.dueDateTime = dueDateTime;
+  if (priority !== undefined) task.priority = priority;
+  if (reminderDateTime !== undefined) task.reminderDateTime = reminderDateTime;
+  if (recurrence !== undefined) task.recurrence = recurrence;
+  
+  return await task.save();
+};
+
+export const clearCompletedTasksService = async (userId, taskListId) => {
+  const result = await Task.deleteMany({
+    userId,
+    taskListId,
+    isCompleted: true,
+  });
+  return result;
 };
