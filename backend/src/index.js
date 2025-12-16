@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import authRoute from './routers/authRoute.js';
 import listTaskRoute from './routers/listTaskRoute.js';
 import taskRoute from './routers/taskRoute.js';
+import profileRoute from './routers/profileRoute.js';
 import requireAuth from './middlewares/authMiddleware.js';
 import { connectDB } from './config/db.js';
 
@@ -26,7 +27,7 @@ app.use('/api/auth', authRoute);
 app.use(requireAuth);
 app.use('/api/list', listTaskRoute);
 app.use('/api/tasks', taskRoute);
-
+app.use('/api/profile', profileRoute);
 app.get('/test', (req, res) => {
   const user = req.user;
   res.status(200).json(user);
