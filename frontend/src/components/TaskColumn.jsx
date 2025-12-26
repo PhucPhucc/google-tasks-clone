@@ -1,32 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-// Icons
-import { FiPlus, FiMoreVertical, FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiPlus, FiMoreHorizontal, FiChevronDown, FiChevronRight, FiTrash2, FiEdit2, FiCheckSquare, FiPrinter } from "react-icons/fi";
 import { FaCheck } from "react-icons/fa";
-import { BiCalendarEvent } from "react-icons/bi";
-// Hình ảnh minh họa (Dùng icon thay thế cho ảnh SVG)
 import { MdOutlineVerified } from "react-icons/md";
 
-const TaskColumn = ({ list, tasks, index, toggleTaskCompletion }) => {
-  // State nhập liệu
-  const [isAdding, setIsAdding] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDesc, setNewTaskDesc] = useState("");
-
-  // State đóng/mở phần Đã hoàn thành (Mặc định mở)
+// Nhận prop onOpenCreateModal từ Home
+const TaskColumn = ({ list, tasks, index, toggleTaskCompletion, onRenameList, onDeleteList, onDeleteCompleted, onOpenCreateModal }) => {
   const [isCompletedOpen, setIsCompletedOpen] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
 
   const activeTasks = tasks.filter((t) => !t.isCompleted);
   const completedTasks = tasks.filter((t) => t.isCompleted);
 
-  const handleAddTask = () => {
-    if(!newTaskTitle.trim()) return setIsAdding(false);
-    // Gọi prop onAddTask từ cha (Tạm thời alert)
-    alert(`Thêm task: ${newTaskTitle}`); 
-    setNewTaskTitle("");
-    setNewTaskDesc("");
-    setIsAdding(false);
-  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <Draggable draggableId={list.id} index={index}>
@@ -38,113 +33,91 @@ const TaskColumn = ({ list, tasks, index, toggleTaskCompletion }) => {
             snapshot.isDragging ? "shadow-2xl ring-2 ring-cyan-700 opacity-90 rotate-1" : ""
           }`}
         >
-          {/* --- HEADER --- */}
+          {/* HEADER */}
           <div
             {...provided.dragHandleProps}
-            className="p-4 flex items-center justify-between border-b border-gray-200 bg-white rounded-t-xl cursor-grab active:cursor-grabbing group flex-shrink-0"
+            className="p-4 flex items-center justify-between border-b border-gray-200 bg-white rounded-t-xl cursor-grab active:cursor-grabbing group flex-shrink-0 relative"
           >
             <div className="flex items-center gap-2">
-                <h3 className="font-bold text-lg text-gray-800 truncate">{list.name}</h3>
+                <h3 className="font-bold text-lg text-gray-800 truncate max-w-[200px]">{list.name}</h3>
                 {activeTasks.length > 0 && <span className="text-gray-400 text-xs font-normal">({activeTasks.length})</span>}
             </div>
-            {/* <div className="p-1 hover:bg-gray-100 rounded cursor-pointer text-gray-500">
-              <FiMoreVertical />
-            </div> */}
+
+            {/* Menu Button */}
+            <div className="relative" ref={menuRef}>
+                <button 
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition cursor-pointer"
+                >
+                    <FiMoreHorizontal size={20}/>
+                </button>
+
+                {showMenu && (
+                    <div className="absolute top-full right-0 mt-2 w-64 bg-[#303134] text-[#e8eaed] rounded-lg shadow-2xl z-50 py-2 animate-fadeIn origin-top-right text-sm">
+                        {/* <div className="px-4 py-2 border-b border-gray-600 mb-1">
+                            <span className="text-xs text-gray-400 font-medium">Sắp xếp theo</span>
+                            <div className="flex items-center gap-2 mt-2 cursor-pointer hover:text-white">
+                                <FiCheckSquare/> Trình tự của tôi
+                            </div>
+                        </div>
+                        <button onClick={() => {onRenameList(list); setShowMenu(false)}} className="w-full text-left px-4 py-2.5 hover:bg-[#3c4043] transition flex items-center gap-3">
+                            <FiEdit2/> Đổi tên danh sách
+                        </button> */}
+                        
+                        {/* --- SỬA LOGIC Ở ĐÂY: Dùng list.isDefault thay vì list.is_default --- */}
+                        {!list.isDefault && list.name !== "Việc cần làm của tôi" ? (
+                             <button onClick={() => {onDeleteList(list.id); setShowMenu(false)}} className="w-full text-left px-4 py-2.5 hover:bg-[#3c4043] transition flex items-center gap-3">
+                                <FiTrash2/> Xóa danh sách
+                            </button>
+                        ) : (
+                            <div className="px-4 py-2.5 text-gray-500 cursor-not-allowed flex items-center gap-3 select-none">
+                                <FiTrash2/> Không thể xóa danh sách mặc định
+                            </div>
+                        )}
+
+                        <div className="border-t border-gray-600 my-1"></div>
+                        {/* <button className="w-full text-left px-4 py-2.5 hover:bg-[#3c4043] transition flex items-center gap-3">
+                            <FiPrinter/> In danh sách
+                        </button> */}
+                        <button onClick={() => {onDeleteCompleted(list.id); setShowMenu(false)}} className="w-full text-left px-4 py-2.5 hover:bg-[#3c4043] transition flex items-center gap-3">
+                            <FiTrash2/> Xóa tất cả việc đã hoàn thành
+                        </button>
+                    </div>
+                )}
+            </div>
           </div>
 
-          {/* --- BODY --- */}
-          <div className="overflow-y-auto p-3 custom-scrollbar">
-            
-            {/* Form Thêm */}
-            {isAdding ? (
-               <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-3 animate-zoom-in">
-                  <input 
-                    autoFocus
-                    placeholder="Tiêu đề"
-                    className="w-full text-base font-medium text-gray-800 placeholder-gray-400 focus:outline-none mb-2"
-                    value={newTaskTitle}
-                    onChange={(e) => setNewTaskTitle(e.target.value)}
-                  />
-                  <input 
-                    placeholder="Chi tiết"
-                    className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none mb-4"
-                    value={newTaskDesc}
-                    onChange={(e) => setNewTaskDesc(e.target.value)}
-                  />
-                  <div className="flex items-center justify-between">
-                     <div className="flex gap-2">
-                        <button className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600 hover:bg-gray-200 transition flex items-center gap-1">
-                            <BiCalendarEvent size={14}/> Hôm nay
-                        </button>
-                     </div>
-                     <button 
-                        onClick={handleAddTask}
-                        className="text-cyan-700 font-bold text-sm hover:bg-blue-50 px-3 py-1.5 rounded transition"
-                     >
-                        Xong
-                     </button>
-                  </div>
-               </div>
-            ) : (
-                <button 
-                    onClick={() => setIsAdding(true)}
-                    className="flex items-center gap-2 text-cyan-700 text-sm font-bold cursor-pointer hover:bg-white p-2 rounded-lg w-full transition mb-2 shadow-sm border border-transparent hover:border-gray-100"
-                >
-                    <div className="bg-cyan-700 text-white rounded-full p-0.5"><FiPlus size={14} /></div> 
-                    Thêm việc cần làm
-                </button>
+          {/* BODY */}
+          <div className="overflow-y-auto p-3 custom-scrollbar flex-1 min-h-[100px]">
+            {/* Nút Thêm Việc Cần Làm */}
+            <button 
+                onClick={() => onOpenCreateModal(list.name)} 
+                className="flex items-center gap-2 text-cyan-700 text-sm font-bold cursor-pointer hover:bg-white p-2 rounded-lg w-full transition mb-2 shadow-sm border border-transparent hover:border-gray-100"
+            >
+                <div className="bg-cyan-700 text-white rounded-full p-0.5"><FiPlus size={14} /></div> Thêm việc cần làm
+            </button>
+
+            {/* Empty State */}
+            {activeTasks.length === 0 && completedTasks.length > 0 && (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <MdOutlineVerified size={50} className="text-cyan-600 mb-2" />
+                    <p className="text-gray-500 text-xs">Đã hoàn thành tất cả!</p>
+                </div>
             )}
 
-            {/* --- DANH SÁCH TASK (Droppable) --- */}
-            {/* Kiểm tra: Nếu không có task nào và đã hoàn thành hết -> Hiện ảnh "Xuất sắc" */}
-            {activeTasks.length === 0 && completedTasks.length > 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center animate-fadeIn">
-                    <MdOutlineVerified size={60} className="text-cyan-600 mb-4" /> {/* Icon thay thế ảnh */}
-                    <h3 className="text-gray-800 font-bold text-base">Đã hoàn thành tất cả việc cần làm</h3>
-                    <p className="text-gray-500 text-sm mt-1">Xuất sắc!</p>
-                </div>
-            ) : null}
-
-            {/* Vùng thả Task */}
             <Droppable droppableId={list.id} type="task">
               {(provided, snapshot) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className={`space-y-3 min-h-[10px] transition-colors rounded-lg ${
-                    snapshot.isDraggingOver ? "bg-blue-50/50 min-h-[50px]" : ""
-                  }`}
-                >
+                <div {...provided.droppableProps} ref={provided.innerRef} className={`space-y-2 min-h-[20px] ${snapshot.isDraggingOver ? "bg-blue-50/50" : ""}`}>
                   {activeTasks.map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id} index={index}>
                       {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`bg-white p-4 rounded-lg shadow-sm border border-gray-200 group hover:shadow-md transition-all relative ${
-                            snapshot.isDragging ? "shadow-2xl ring-2 ring-cyan-700 rotate-2 z-50" : ""
-                          }`}
-                        >
-                          <div className="flex gap-3">
-                            <div
-                              onClick={() => toggleTaskCompletion(list.id, task.id)}
-                              className="mt-0.5 w-5 h-5 flex-shrink-0 border-2 border-gray-400 rounded-full hover:border-cyan-700 cursor-pointer transition flex items-center justify-center"
-                            ></div>
+                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={`bg-white p-3 rounded-lg shadow-sm border border-gray-200 group hover:shadow transition relative ${snapshot.isDragging ? "shadow-xl ring-2 ring-cyan-700 rotate-2 z-50" : ""}`}>
+                          <div className="flex gap-3 items-start">
+                            <div onClick={() => toggleTaskCompletion(list.id, task.id)} className="mt-0.5 w-4 h-4 flex-shrink-0 border-2 border-gray-400 rounded-full hover:border-cyan-700 cursor-pointer transition"></div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-gray-800 text-sm font-medium leading-tight mb-1">
-                                {task.title}
-                              </h4>
-                              {task.description && (
-                                <p className="text-xs text-gray-500 line-clamp-2">
-                                  {task.description}
-                                </p>
-                              )}
-                               {task.deadline && (
-                                  <span className="inline-block mt-2 text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">
-                                      {task.deadline}
-                                  </span>
-                              )}
+                              <p className="text-gray-800 text-sm font-medium leading-tight">{task.title}</p>
+                              {task.description && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{task.description}</p>}
+                              {task.deadline && <span className="inline-block mt-1 text-[10px] bg-red-50 text-red-600 px-1.5 rounded border border-red-100">{task.deadline}</span>}
                             </div>
                           </div>
                         </div>
@@ -156,39 +129,19 @@ const TaskColumn = ({ list, tasks, index, toggleTaskCompletion }) => {
               )}
             </Droppable>
 
-            {/* --- COMPLETED TASKS (COLLAPSIBLE) --- */}
+            {/* Completed Tasks */}
             {completedTasks.length > 0 && (
               <div className="mt-4 border-t border-gray-200 pt-2">
-                {/* Header đóng mở */}
-                <div 
-                    onClick={() => setIsCompletedOpen(!isCompletedOpen)}
-                    className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition group select-none"
-                >
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider group-hover:text-gray-700">
-                        Đã hoàn thành ({completedTasks.length})
-                    </span>
-                    <div className="text-gray-400 group-hover:text-gray-600">
-                        {isCompletedOpen ? <FiChevronDown size={16}/> : <FiChevronRight size={16}/>}
-                    </div>
+                <div onClick={() => setIsCompletedOpen(!isCompletedOpen)} className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition">
+                    <span className="text-xs font-bold text-gray-500 uppercase">Đã hoàn thành ({completedTasks.length})</span>
+                    {isCompletedOpen ? <FiChevronDown className="text-gray-400"/> : <FiChevronRight className="text-gray-400"/>}
                 </div>
-
-                {/* Danh sách đã hoàn thành (Ẩn/Hiện) */}
                 {isCompletedOpen && (
-                    <div className="space-y-1 opacity-70 mt-1 animate-fadeIn">
+                    <div className="space-y-1 mt-1 opacity-70">
                     {completedTasks.map((task) => (
-                        <div
-                        key={task.id}
-                        className="group flex items-center gap-3 p-3 hover:bg-white hover:shadow-sm rounded-lg transition cursor-default"
-                        >
-                        <div
-                            onClick={() => toggleTaskCompletion(list.id, task.id)}
-                            className="w-5 h-5 flex-shrink-0 bg-cyan-700 border-2 border-cyan-700 rounded-full cursor-pointer flex items-center justify-center text-white hover:opacity-80"
-                        >
-                            <FaCheck size={10} />
-                        </div>
-                        <span className="text-sm text-gray-500 line-through decoration-gray-400">
-                            {task.title}
-                        </span>
+                        <div key={task.id} className="flex items-center gap-3 p-2 bg-white/50 rounded hover:bg-white transition">
+                             <div onClick={() => toggleTaskCompletion(list.id, task.id)} className="w-4 h-4 flex-shrink-0 bg-cyan-700 text-white rounded-full flex items-center justify-center cursor-pointer"><FaCheck size={10}/></div>
+                             <span className="text-sm text-gray-500 line-through decoration-gray-400">{task.title}</span>
                         </div>
                     ))}
                     </div>
@@ -201,5 +154,4 @@ const TaskColumn = ({ list, tasks, index, toggleTaskCompletion }) => {
     </Draggable>
   );
 };
-
 export default TaskColumn;

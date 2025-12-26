@@ -21,7 +21,8 @@ const getFirstDayOfMonth = (month, year) => {
   return day === 0 ? 6 : day - 1;
 };
 
-const CreateTaskModal = ({ isOpen, onClose }) => {
+// --- THAY ĐỔI: Nhận thêm prop `defaultList` ---
+const CreateTaskModal = ({ isOpen, onClose, onSave, listOptions = [], defaultList = "" }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -38,15 +39,40 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
   const timeOptions = generateTimeOptions();
 
   const [isListOpen, setIsListOpen] = useState(false);
-  const [selectedList, setSelectedList] = useState("Việc cần làm của tôi");
+  
+  // State selectedList
+  const [selectedList, setSelectedList] = useState(""); 
   const [isRepeatOpen, setIsRepeatOpen] = useState(false);
   const [selectedRepeat, setSelectedRepeat] = useState("Không lặp lại");
 
-  const listOptions = ["Việc cần làm của tôi", "Study", "Food"];
   const repeatOptions = ["Không lặp lại", "Hàng ngày", "Hàng tuần", "Hàng tháng", "Hàng năm"];
 
   const calendarRef = useRef(null);
   const timeRef = useRef(null);
+
+  // --- LOGIC MỚI: Tự động chọn list theo defaultList hoặc list đầu tiên ---
+  useEffect(() => {
+    if (isOpen) {
+        if (defaultList && listOptions.includes(defaultList)) {
+            setSelectedList(defaultList);
+        } else if (listOptions.length > 0 && !selectedList) {
+            setSelectedList(listOptions[0]);
+        }
+    }
+  }, [isOpen, defaultList, listOptions]);
+
+  // Reset form khi đóng modal
+  useEffect(() => {
+      if(!isOpen) {
+          setTitle("");
+          setDescription("");
+          setDateInput("");
+          setTimeInput("");
+          setSelectedDateObj(null);
+          // Không reset selectedList để giữ trải nghiệm tốt
+      }
+  }, [isOpen]);
+
 
   const handlePrevMonth = () => {
     if (currMonth === 0) {
@@ -72,6 +98,19 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
     setDateInput(`${day} tháng ${currMonth + 1}`);
     setShowCalendar(false);
   };
+
+  const handleSave = () => {
+      if(!title.trim()) return;
+      onSave({
+          title,
+          description,
+          dateInput,
+          timeInput,
+          selectedList, 
+          selectedRepeat
+      });
+      onClose();
+  }
 
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currMonth, currYear);
@@ -129,22 +168,18 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-
-      {/* --- MODAL CONTAINER --- */}
+    <div className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-[550px] rounded-xl shadow-2xl overflow-visible animate-zoom-in flex flex-col">
-
-        {/* --- Header --- */}
+        {/* Header */}
         <div className="flex justify-end p-3 pb-0">
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition text-gray-500 hover:cursor-pointer">
             <RxCross2 size={24} />
           </button>
         </div>
 
-        {/* --- Body --- */}
+        {/* Body */}
         <div className="px-6 pb-6 space-y-5 flex-1 relative">
-
-          {/* === 1. PHẦN TIÊU ĐỀ === */}
+          {/* 1. Title */}
           <div className="group relative">
             <div className="ml-[3.2rem]">
               <input
@@ -160,15 +195,10 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* === 2. NGÀY & GIỜ === */}
+          {/* 2. DateTime (Giữ nguyên) */}
           <div className="flex items-start gap-4">
-            <div className="p-2 text-gray-600 mt-1">
-              <MdOutlineWatchLater size={22} />
-            </div>
-
+            <div className="p-2 text-gray-600 mt-1"><MdOutlineWatchLater size={22} /></div>
             <div className="flex flex-wrap gap-3 items-center w-full relative">
-
-              {/* --- INPUT NGÀY --- */}
               <div className="relative group" ref={calendarRef}>
                 <input
                   type="text"
@@ -178,33 +208,18 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
                   onFocus={() => setShowCalendar(true)}
                   className="bg-gray-100 text-gray-700 font-medium text-sm px-4 py-2.5 rounded hover:bg-gray-200 transition focus:outline-none w-[140px]"
                 />
-                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-focus-within:w-full rounded-b"></div>
-
-                {/* --- BẢNG LỊCH --- */}
                 {showCalendar && (
                   <div className="absolute top-full left-0 mt-2 bg-white text-gray-800 rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.15)] border border-gray-100 p-4 w-[320px] z-[60] animate-fadeIn">
-
-                    {/* Header Lịch */}
                     <div className="flex items-center justify-between mb-4 px-2">
                       <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-600 transition"><FiChevronLeft size={20} /></button>
                       <span className="font-bold text-sm text-gray-700">Tháng {currMonth + 1} năm {currYear}</span>
                       <button onClick={handleNextMonth} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-600 transition"><FiChevronRight size={20} /></button>
                     </div>
-
-                    {/* Thứ */}
-                    <div className="grid grid-cols-7 mb-2 text-center text-xs text-gray-500 font-semibold">
-                      {daysOfWeek.map(d => <div key={d}>{d}</div>)}
-                    </div>
-
-                    {/* Ngày */}
-                    <div className="grid grid-cols-7 gap-y-1 justify-items-center">
-                      {renderCalendarDays()}
-                    </div>
+                    <div className="grid grid-cols-7 mb-2 text-center text-xs text-gray-500 font-semibold">{daysOfWeek.map(d => <div key={d}>{d}</div>)}</div>
+                    <div className="grid grid-cols-7 gap-y-1 justify-items-center">{renderCalendarDays()}</div>
                   </div>
                 )}
               </div>
-
-              {/* --- INPUT GIỜ --- */}
               <div className="relative group" ref={timeRef}>
                 <input
                   type="text"
@@ -214,34 +229,18 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
                   onFocus={() => setShowTimeDropdown(true)}
                   className="bg-gray-100 text-gray-700 font-medium text-sm px-4 py-2.5 rounded hover:bg-gray-200 transition  focus:outline-none w-[100px]"
                 />
-                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-focus-within:w-full rounded-b"></div>
-
-                {/* --- DANH SÁCH GIỜ --- */}
                 {showTimeDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-[180px] max-h-[250px] overflow-y-auto bg-white text-gray-700 rounded-lg shadow-[0_4px_20px_rgb(0,0,0,0.15)] border border-gray-100 z-[60] custom-scrollbar py-2 animate-fadeIn">
                     {timeOptions.map((time) => (
-                      <div
-                        key={time}
-                        onClick={() => {
-                          setTimeInput(time);
-                          setShowTimeDropdown(false);
-                        }}
-                        className={`px-4 py-2.5 text-sm hover:bg-gray-100 cursor-pointer flex items-center justify-between
-                            ${timeInput === time ? "bg-blue-50 text-blue-700 font-medium" : ""}
-                          `}
-                      >
-                        {time}
-                        {timeInput === time && <FiCheck size={14} />}
+                      <div key={time} onClick={() => { setTimeInput(time); setShowTimeDropdown(false); }} className={`px-4 py-2.5 text-sm hover:bg-gray-100 cursor-pointer flex items-center justify-between ${timeInput === time ? "bg-blue-50 text-blue-700 font-medium" : ""}`}>
+                        {time} {timeInput === time && <FiCheck size={14} />}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-
-
             </div>
           </div>
-          {/* Checkbox */}
           <div className="ml-[3.2rem]">
             <label className="flex items-center gap-2 cursor-pointer ml-auto select-none p-2 rounded hover:bg-gray-50">
               <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-cyan-700 focus:ring-cyan-700 cursor-pointer" />
@@ -249,8 +248,7 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
             </label>
           </div>
 
-
-          {/* === 3. LẶP LẠI (Dropdown) === */}
+          {/* 3. Repeat (Giữ nguyên) */}
           <div className="flex items-start gap-4 relative z-50">
             <div className="p-2 text-gray-600 mt-1"><FiRepeat size={22} /></div>
             <div className="relative group">
@@ -261,16 +259,10 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
                 <span>{selectedRepeat}</span>
                 <FiChevronDown size={16} className={`transition-transform duration-200 ${isRepeatOpen ? "rotate-180" : ""}`} />
               </button>
-              <div className={`absolute bottom-0 left-0 h-[2px] bg-blue-600 transition-all duration-300 rounded-b ${isRepeatOpen ? "w-full" : "w-0 group-focus-within:w-full"}`}></div>
-
               {isRepeatOpen && (
                 <div className="absolute top-full left-0 mt-1 w-60 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-fadeIn origin-top-left">
                   {repeatOptions.map((item) => (
-                    <div
-                      key={item}
-                      onClick={() => { setSelectedRepeat(item); setIsRepeatOpen(false); }}
-                      className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
-                    >
+                    <div key={item} onClick={() => { setSelectedRepeat(item); setIsRepeatOpen(false); }} className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between">
                       <span>{item}</span>
                       {selectedRepeat === item && <FiCheck className="text-cyan-700" />}
                     </div>
@@ -280,37 +272,31 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* === 4. MÔ TẢ === */}
+          {/* 4. Description (Giữ nguyên) */}
           <div className="flex items-start gap-4 relative z-0">
             <div className="p-2 text-gray-600 mt-1"><MdOutlineDescription size={22} /></div>
-            <div className="w-full relative group">
-              <textarea
+            <textarea
                 rows={3}
                 placeholder="Thêm nội dung mô tả"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-gray-100 text-gray-800 rounded-lg rounded-b-none p-3 text-sm focus:outline-none resize-none placeholder-gray-500 hover:bg-gray-200 transition relative z-10 block"
-              />
-              <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-focus-within:w-full z-20"></div>
-            </div>
+                className="w-full bg-gray-100 text-gray-800 rounded-lg p-3 text-sm focus:outline-none resize-none placeholder-gray-500 hover:bg-gray-200 transition relative z-10 block"
+            />
           </div>
 
-          {/* === 5. DANH SÁCH (Dropdown) === */}
+          {/* 5. List Select (Có hiển thị list đang chọn) */}
           <div className="flex items-center gap-4 relative z-40">
             <div className="p-2 text-gray-600"><MdOutlineFormatListBulleted size={22} /></div>
             <div className="relative group">
               <button
                 onClick={() => { setIsListOpen(!isListOpen); setIsRepeatOpen(false); }}
                 className="flex items-center justify-between gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm px-4 py-2.5 rounded transition cursor-pointer min-w-[160px] focus:outline-none"
-
               >
-                {selectedList}
+                {selectedList || "Chọn danh sách"} 
                 <FiChevronDown size={16} className={`transition-transform duration-200 ${isListOpen ? "rotate-180" : ""}`} />
               </button>
-              <div className={`absolute bottom-0 left-0 h-[2px] bg-blue-600 transition-all duration-300 rounded-b ${isListOpen ? "w-full" : "w-0 group-focus-within:w-full"}`}></div>
-
               {isListOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-fadeIn origin-top-left">
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-fadeIn origin-top-left max-h-48 overflow-y-auto custom-scrollbar">
                   {listOptions.map((item) => (
                     <div
                       key={item}
@@ -327,10 +313,10 @@ const CreateTaskModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* --- Footer --- */}
+        {/* Footer */}
         <div className="flex justify-end px-6 py-4 border-t border-gray-100 bg-gray-50/50 mt-auto rounded-b-xl">
           <button
-            onClick={onClose}
+            onClick={handleSave}
             className="hover:cursor-pointer bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-8 rounded-full transition shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             Lưu

@@ -1,43 +1,52 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify"; // <--- Import
+import "react-toastify/dist/ReactToastify.css"; // <--- Import CSS
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OtpVerify from "./pages/OtpVerify";
-import Home from "./pages/Home"; // <--- Import Home
+import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
     <div className="min-h-screen w-full relative bg-white">
-      {/* (Giữ nguyên phần Background Effect cũ của bạn) */}
+      {/* Background Effect */}
       <div
         className="absolute inset-0 z-0"
         style={{
           background: "#ffffff",
-          backgroundImage: `
-            radial-gradient(
-              circle at top center,
-              rgba(70, 130, 180, 0.5),
-              transparent 70%
-            )
-          `,
+          backgroundImage: `radial-gradient(circle at top center, rgba(70, 130, 180, 0.5), transparent 70%)`,
           filter: "blur(80px)",
           backgroundRepeat: "no-repeat",
         }}
       />
 
-      <div className="relative z-10"> {/* Bọc z-10 để nội dung nổi lên trên nền */}
+      <div className="relative z-10">
         <BrowserRouter>
           <Routes>
-            {/* Mặc định vào login */}
-
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verifyotp" element={<OtpVerify />} />
-
-            {/* Thêm route Home */}
             <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </BrowserRouter>
       </div>
+
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }
