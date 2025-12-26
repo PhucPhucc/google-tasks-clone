@@ -1,3 +1,5 @@
+import Task from "../models/Task.js"; // Import thêm Model Task (để dùng cho các hàm khác nếu cần)
+import TaskList from "../models/TaskList.js"; // <--- QUAN TRỌNG: Thêm dòng này để fix lỗi Move Task
 import {
   clearCompletedTasksService,
   createNewTaskService,
